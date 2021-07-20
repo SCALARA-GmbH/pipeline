@@ -19,11 +19,11 @@ export DEBIAN_FRONTEND=noninteractive
 
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-sudo apt update
-sudo apt install yarn jq -y
+apt update
+apt install yarn jq -y
 
 # playwrigth dependencies
-sudo apt install -y \
+apt install -y \
   libgbm1 \
   libnss3 \
   libxss1 \
@@ -69,13 +69,13 @@ sudo apt install -y \
 
 cd actions-runner
 
-sudo ./bin/installdependencies.sh
+./bin/installdependencies.sh
 
 RUNNER_TOKEN_URI="https://api.github.com/repos/${ORGANIZATION}/${REPOSITORY_NAME}/actions/runners/registration-token"
 export REPOSITORY_URI="https://github.com/${ORGANIZATION}/${REPOSITORY_NAME}"
 export RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
 
-./config.sh --url "${REPOSITORY_URI}" --token "${RUNNER_TOKEN}" --name $(hostname)-$(openssl rand -hex 5) --unattended
+su -m vagrant -c './config.sh --url "${REPOSITORY_URI}" --token "${RUNNER_TOKEN}" --name $(hostname)-$(openssl rand -hex 5) --unattended'
 
-sudo ./svc.sh install
-sudo ./svc.sh start
+./svc.sh install
+./svc.sh start
