@@ -23,11 +23,11 @@ fi
 RUNNER_TOKEN_URI="https://api.github.com/repos/${ORGANIZATION}/${REPOSITORY_NAME}/actions/runners/registration-token"
 
 # runner token
-export RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
+RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
 
 # remove runner
 cd actions-runner
 
-./svc.sh uninstall
+sudo ./svc.sh uninstall
 
-su -m vagrant -c './config.sh remove --token "${RUNNER_TOKEN}"'
+./config.sh remove --token "${RUNNER_TOKEN}"

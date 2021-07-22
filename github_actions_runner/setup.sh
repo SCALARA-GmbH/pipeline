@@ -2,7 +2,7 @@
 
 . ./.env
 
-for var in ORGANIZATION REPOSITORY_NAME GITHUB_TOKEN;
+for var in ORGANIZATION REPOSITORY_NAME GITHUB_TOKEN RUNNER_LABELS;
 do
   [[ -z "${!var}" ]] && {
     >&2 echo "missing environment variable: $var";
@@ -69,13 +69,17 @@ sudo apt install -y \
 
 cd actions-runner
 
+curl -o actions-runner-linux-x64-2.278.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.278.0/actions-runner-linux-x64-2.278.0.tar.gz
+tar xzf ./actions-runner-linux-x64-2.278.0.tar.gz
+
 sudo ./bin/installdependencies.sh
 
 RUNNER_TOKEN_URI="https://api.github.com/repos/${ORGANIZATION}/${REPOSITORY_NAME}/actions/runners/registration-token"
-export REPOSITORY_URI="https://github.com/${ORGANIZATION}/${REPOSITORY_NAME}"
-export RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
+REPOSITORY_URI="https://github.com/${ORGANIZATION}/${REPOSITORY_NAME}"
+RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
 
-./config.sh --url "${REPOSITORY_URI}" --token "${RUNNER_TOKEN}" --name $(hostname)-$(openssl rand -hex 5) --unattended
+./config.sh --url "${REPOSITORY_URI}" --token "${RUNNER_TOKEN}" --name $(hostname)-$(openssl rand -hex 5) --unattended --labels "${RUNNER_LABELS}"
 
 sudo ./svc.sh install
 sudo ./svc.sh start
+
