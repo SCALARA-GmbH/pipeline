@@ -2,7 +2,7 @@
 
 . ./.env
 
-for var in ORGANIZATION REPOSITORY_NAME GITHUB_TOKEN;
+for var in ORGANIZATION REPOSITORY_NAME GITHUB_TOKEN RUNNER_LABELS;
 do
   [[ -z "${!var}" ]] && {
     >&2 echo "missing environment variable: $var";
@@ -19,11 +19,11 @@ export DEBIAN_FRONTEND=noninteractive
 
 curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
 echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-apt update
-apt install yarn jq -y
+sudo apt update
+sudo apt install yarn jq -y
 
 # playwrigth dependencies
-apt install -y \
+sudo apt install -y \
   libgbm1 \
   libnss3 \
   libxss1 \
@@ -69,13 +69,17 @@ apt install -y \
 
 cd actions-runner
 
-./bin/installdependencies.sh
+curl -o actions-runner-linux-x64-2.278.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.278.0/actions-runner-linux-x64-2.278.0.tar.gz
+tar xzf ./actions-runner-linux-x64-2.278.0.tar.gz
+
+sudo ./bin/installdependencies.sh
 
 RUNNER_TOKEN_URI="https://api.github.com/repos/${ORGANIZATION}/${REPOSITORY_NAME}/actions/runners/registration-token"
-export REPOSITORY_URI="https://github.com/${ORGANIZATION}/${REPOSITORY_NAME}"
-export RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
+REPOSITORY_URI="https://github.com/${ORGANIZATION}/${REPOSITORY_NAME}"
+RUNNER_TOKEN=$(curl -X POST -H "Authorization: token ${GITHUB_TOKEN}" "${RUNNER_TOKEN_URI}" | jq -r .token)
 
-su -m vagrant -c './config.sh --url "${REPOSITORY_URI}" --token "${RUNNER_TOKEN}" --name $(hostname)-$(openssl rand -hex 5) --unattended'
+./config.sh --url "${REPOSITORY_URI}" --token "${RUNNER_TOKEN}" --name $(hostname)-$(openssl rand -hex 5) --unattended --labels "${RUNNER_LABELS}"
 
-./svc.sh install
-./svc.sh start
+sudo ./svc.sh install
+sudo ./svc.sh start
+
